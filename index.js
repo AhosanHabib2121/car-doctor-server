@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000
 // middleware
 app.use(cors({
     origin: [
-        // 'http://localhost:5173'
+        // 'http://localhost:5173',
         'https://rosy-slate-400304.web.app',
         'https://rosy-slate-400304.firebaseapp.com'
     
@@ -75,13 +75,11 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: '1h'
             })
-            res.cookie('token', token , {
-                httpOnly: true,
-                secure: true,
-                sameSite: false
-                // secure: process.env.NODE_ENV === 'production',
-                // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
-            })
+           res.cookie('token', token, {
+               httpOnly: true,
+               secure: process.env.NODE_ENV === 'production',
+               sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+           })
             .send({success: true})
         }) 
 
