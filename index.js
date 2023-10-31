@@ -70,14 +70,24 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: '1h'
             })
-
             res.cookie('token', token , {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+                secure: true,
+                sameSite: false
+                // secure: process.env.NODE_ENV === 'production',
+                // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
             })
             .send({success: true})
         }) 
+
+        // logout and clear cookies data
+        app.post('/logout', async(req, res) => {
+            const user = req.body;
+            console.log('logout user', user)
+            res
+                .clearCookie('token', { maxAge: 0 })
+                .send({success: true})
+        })
 
         // --------------------ServicesCollection here ----------------
         // get all data form servicesCollection
@@ -109,7 +119,8 @@ async function run() {
         app.get('/booking', logger, verifyToken, async (req, res) => {
             // console.log(req.query.email);
             // console.log('tttttt token', req.cookies?.token);
-            console.log('user in the valid token',req.user)
+            // console.log('user in the valid token',req.user)
+            console.log('cookies for booking', req.cookies)
             if (req.query?.email !== req.user?.email) {
                 return res.status(403).send({ message: 'Forbidden'})
             }
