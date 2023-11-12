@@ -10,9 +10,9 @@ const port = process.env.PORT || 5000
 // middleware
 app.use(cors({
     origin: [
-        // 'http://localhost:5173',
-        'https://rosy-slate-400304.web.app',
-        'https://rosy-slate-400304.firebaseapp.com'
+        'http://localhost:5173',
+        // 'https://rosy-slate-400304.web.app',
+        // 'https://rosy-slate-400304.firebaseapp.com'
     
     ],
     credentials: true,
@@ -36,7 +36,7 @@ const client = new MongoClient(uri, {
 
 // middleware
 const logger = async(req, res, next) => {
-    console.log('called:', req.host, req.originalUrl);
+    // console.log('called:', req.host, req.originalUrl);
     next();
 }
 const verifyToken = async(req, res, next) => {
@@ -61,9 +61,7 @@ const verifyToken = async(req, res, next) => {
 
 async function run() {
     try {
-        // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
-
+        
         // database collection
         const serviceCollection = client.db('carDoctor').collection('services');
         const bookingCollection = client.db('carDoctor').collection('booking');
@@ -86,7 +84,6 @@ async function run() {
         // logout and clear cookies data
         app.post('/logout', async(req, res) => {
             const user = req.body;
-            console.log('logout user', user)
             res
                 .clearCookie('token', { maxAge: 0 })
                 .send({success: true})
@@ -95,9 +92,18 @@ async function run() {
         // --------------------ServicesCollection here ----------------
         // get all data form servicesCollection
         app.get('/services', logger, async (req, res) => {
+            const filter = req.query;
             const cursor = serviceCollection.find();
             const result = await cursor.toArray();
-            res.send(result);
+            let data
+            if (filter.sort == 'asc') {
+                data = result.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+            }
+            else {
+                data = result.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+            }
+
+            res.send(data);
         });
 
         // get specific id base form servicesCollection
@@ -127,7 +133,7 @@ async function run() {
             if (req.query?.email !== req.user?.email) {
                 return res.status(403).send({ message: 'Forbidden'})
             }
-
+            
             let query = {};
             if (req.query?.email) {
                 query = {email: req.query.email}
